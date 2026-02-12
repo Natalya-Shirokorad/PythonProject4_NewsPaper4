@@ -1,0 +1,96 @@
+<!--  наследуемся от шаблона default.html, который мы создавали для flatpages -->
+{% extends 'flatpages/default.html' %}
+{% load custom_filters %}
+{% load custom_tags %}
+{% load static %}
+
+
+
+<!-- Название у нас будет posts -->
+{% block title %}
+News
+{% endblock title %}
+
+<!-- В контенте на странице мы выводим все товары -->
+{% block content %}
+<div class="container mt-5">
+    <h1> Все новости </h1>
+    <p> Всего новостей: {{ news|length }}</p> {# Выведет количество новостей #}
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+        <hr>
+        <p> {% if news %}
+        <table class="table table-striped"> <!-- Начинаем описывать таблицу -->
+            <thead>
+            <tr> <!-- Добавляем строку -->
+                <th>№ п/п</th>
+                <th>Фото к публикации</th>
+                <th>Ссылка на статью</th>
+                <th>Заголовок</th>
+                <th>Текст</th>
+                <th>Дата публикации</th>
+                <th>Автор</th>
+                <th>Тип публикации</th>
+                <th colspan="2">Рейтинг</th>
+                <th>Категория</th>
+<!--                <td>Заголовок</td>-->
+<!--                <td>Дата публикации</td>-->
+<!--                <td>Текст</td>-->
+<!--                <td>Автор</td>-->
+<!--                <td>Тип публикации</td>-->
+<!--                <td colspan="2">Рейтинг</td>-->
+<!--                <td>Категория</td>-->
+<!--                #Объеденяем два столбика рейтинг эмодзи и показатель# -->
+            </tr>
+            </thead>
+                {% for post in news %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    {% if post.image %}
+                    <img src="{{ post.image.url }}" class="img-thumbnail"
+                         style="width:80px; height:80px; object-fil:cover;" alt="thumbnail">
+                    {% else %}
+                    <img src="{% static 'images/newspaper on the table.jfif' %}" class="img-thumbnail">
+                    {% endif %}
+                </td>
+                <td><a href="{% url 'post_detail' post.id  %}">{{post.title }}</a></td>
+                <td>{{ post.title}}</td>
+                <td>{{ post.text|truncatechars:2000|find_a_bad_word}}</td>
+                <td>{{ post.time_in|date:'d M Y' }}</td>
+                <td>{{ post.author.user.username}}</td>
+                <td>{{ post.get_article_or_news_display}}</td>
+                <td>{{ post.rating}}</td>
+                <td>{{ post.rating|emoji}}</td>
+                <td>{% for category in post.categorys.all %}{{ category.category_name }} {% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                </td>
+            </tr>
+                {% endfor %}
+        </table>
+    <hr>
+            {% else %}
+        <h2> Новостей нет! </h2>
+        {% endif %}
+
+    {% if page_obj.has_previous %}
+        <a href="?{% url_replace page=1 %}">1</a>
+        {% if page_obj.previous_page_number != 1 %}
+            ...
+            <a href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
+        {% endif %}
+    {% endif %}
+
+    {{ page_obj.number }}
+
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
+        {% if paginator.num_pages != page_obj.next_page_number %}
+            ...
+            <a href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+        {% endif %}
+    {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

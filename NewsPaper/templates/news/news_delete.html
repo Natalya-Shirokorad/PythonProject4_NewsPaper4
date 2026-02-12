@@ -1,0 +1,15 @@
+{% extends 'flatpages/default.html' %}
+
+{% block title %}
+<h1>Удаление новости</h1>
+{% endblock title %}
+
+{% block content %}
+<h2>Удаление новости</h2>
+<hr>
+<form action="" method="post" class="filter_form">
+    {% csrf_token %}
+    <p>Удалить новость {{ post.pk }} {{ post.title }}?</p>
+    <input type="submit" value="Delete" style="background-color: darkblue;"/>
+</form>
+{% endblock content %}

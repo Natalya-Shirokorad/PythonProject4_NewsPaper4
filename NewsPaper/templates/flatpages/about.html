@@ -1,0 +1,22 @@
+{% extends 'flatpages/default.html'%}
+
+{% block title %}
+<head>
+    <title> Навигация сайта </title>
+</head>
+{% endblock title %}
+
+{% block content %}
+
+
+<body>
+<h1> ДОБРО ПОЖАЛОВАТЬ НА НОВОСТНОЙ ПОРТАЛ! </h1>
+<h1> Пишите, читайте с удовольствием! </h1>
+<h2> Чтобы выложить публикацию жми кнопку ВХОД или РЕГИСТРАЦИЯ </h2>
+{{ flatpage.content}}
+</body>
+<div>
+    <h1><a href="{% url 'login' %}">Регистрация/Вход</a></h1>
+</div>
+{% endblock content %}
+

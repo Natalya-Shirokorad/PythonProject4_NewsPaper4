@@ -1,0 +1,104 @@
+from django.contrib.auth.models import User
+from main.models import Author, Category, Post, PostCategory, Comment
+import datetime
+
+
+1. Создать двух пользователей (с помощью метода User.objects.create_user('username')).
+user1 = User.objects.create_user(username = "Bob")
+user3 = User.objects.create_user(username = "Nick", first_name = "Nickovich", email = "Nick@mail.ru")
+
+
+2. Создать два объекта модели Author, связанные с пользователями.
+author1 = Author.objects.create(user = User(1))
+author2  = Author.objects.create(user = User(2))
+
+
+3. Добавить 4 категории в модель Category.
+category1 = Category.objects.create(category_name = "sports")
+category2 = Category.objects.create(category_name = 'politics')
+category3 = Category.objects.create(category_name = 'education')
+category4 = Category.objects.create(category_name = 'humor')
+
+
+4. Добавить 2 статьи и 1 новость.
+4.1 post1 = Post.objects.create(
+    author=Author(1),
+    title='Удивительное открытие в мире науки',
+    text='На днях группа ученых объявила о прорыве в области квантовой физики, который может изменить наше представление о Вселенной...')
+
+4.3 post2 = Post.objects.create(author = Author(1), article_or_news = 'Статья', title = "Победа 2025", text = "В финале сезона наша команда одержала уверенную победу, став чемпионом года!")
+
+4.2 post3 = Post.objects.create(author = Author(2), article_or_news = 'Новость', title = 'Влияние искусственного интеллекта на образование', text = 'Искусственный интеллект активно проникает во все сферы жизни. Он предлагает новые возможности для персонализированного обучения, автоматизации рутинных задач и создания инновационных образовательных инструментов. Однако, существуют и вызовы, связанные с этическими аспектами, конфиденциальностью данных и необходимостью подготовки преподавателей к работе с новыми технологиями.')
+
+4.3 post4 = Post.objects.create(author = Author(2), article_or_news = 'Новость', title = 'С 1 сентября 2026 новая модель высшего образования.', text = 'С 1 сентября 2026 года начнется переход на новую модель высшего образования. Бакалавриат и магистратур
+а будут заменены на базовое и специализированное высшее образование.'
+Срок обучения на специализированном уровне может достигать 3 лет, а в целом срок обучения в вузах будет варьироваться от четырех до шести лет, в зависимости от
+программы.
+Министерство образования заверило, что существенных отличий при поступлении в вузы не будет.(Новость)>
+
+
+5. Присвоить им категории (как минимум в одной статье/новости должно быть не меньше 2 категорий).
+PostCategory.objects.create(post=post1, category=Category(3))
+PostCategory.objects.create(post=post2, category=Category(1))
+PostCategory.objects.create(post=post3, category=Category(3))
+PostCategory.objects.create(post=post3, category=Category(1))
+
+
+6. Создать как минимум 4 комментария к разным объектам модели Post (в каждом объекте должен быть как минимум один комментарий).
+comment1 = Comment.objects.create(user = User(1), post = Post(1), text_comment ='Вперед к новым открытиям!')
+comment2 = Comment.objects.create(user = User(1), post = Post(2), text_comment ='Так держать, чемпионы!')
+comment3 = Comment.objects.create(user = User(2), post = Post(2), text_comment ='С победой!')
+comment4 = Comment.objects.create(user = User(2), post = Post(3), text_comment ='Ой! Что нас ждет?')
+comment5 = Comment.objects.create(user = User(3), post = Post(2), text_comment ='Россия вперед!')
+
+7. Применяя функции like() и dislike() к статьям/новостям и комментариям, скорректировать рейтинги этих объектов.
+post1.like_post()
+post2.like_post()
+post3.like_post()
+post1.like_post()
+post1.dislike_post()
+comment1.like()
+comment2.like()
+comment3.like()
+comment2.dislike()
+
+
+8. Обновить рейтинги пользователей.
+author2_obj = Author.objects.get(user=User(2))
+author2_obj.update_rating()
+author1_obj = Author.objects.get(user=User(1))
+author1_obj.update_rating()
+
+
+9. Вывести username и рейтинг лучшего пользователя (применяя сортировку и возвращая поля первого объекта).
+best_author = Author.objects.all().order_by('-rating').first()
+print( f" username: {best_author.user.username}, Peйтинг: {best_author.rating}")
+
+
+10. Вывести дату добавления, username автора, рейтинг, заголовок и превью лучшей статьи, основываясь на лайках/дислайках
+к этой статье.
+best_post = Post.objects.all().order_by('-rating').first()
+print("\n--- Лучшая статья/новость ---")
+print(f"Дата добавления: {best_post.time_in.strftime('%Y-%m-%d %H:%M')}")
+print(f"Автор: {best_post.author.user.username}")
+print(f"Рейтинг: {best_post.rating}")
+print(f"Заголовок: {best_post.title}")
+print(f"Превью: {best_post.preview()}")
+
+
+11.Вывести все комментарии (дата, пользователь, рейтинг, текст) к этой статье.
+print(f"\n--- Коментарий к статье: '{best_post.title}' ---")
+comment_to_best_post = Comment.objects.filter(post = best_post).order_by('time_in_category')
+if comment_to_best_post.exists():
+    for comment in comment_to_best_post:
+        print(f"Дата: {comment.time_in_category.strftime('%Y-%m-%d %H:%M')}",
+            f"Пользователь: {comment.user.username}",
+            f"Рейтинг: {comment.comment_rating}",
+            f"Текст: {comment.text_comment}"
+            )
+else:
+    print("К этой статье еще нет комментариев.")
+
+
+
+

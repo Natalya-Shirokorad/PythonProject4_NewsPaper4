@@ -1,0 +1,15 @@
+{% extends 'flatpages/default.html' %}
+
+{% block content %}
+
+<div style="background-color: lightgreen; padding: 30px;"> <!-- Оборачиваем контент -->
+    <h1>Новость</h1>
+    <hr>
+    <form action="" method="post" class="filter-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Создать новость" style="background-color: green;"/>
+    </form>
+</div>
+{% endblock content %}
+

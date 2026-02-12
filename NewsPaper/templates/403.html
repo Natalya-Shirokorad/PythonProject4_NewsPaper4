@@ -1,0 +1,28 @@
+{% extends 'flatpages/default.html' %}
+
+{% block title %}
+<h1> Доступ ограничен! </h1>
+{% endblock title %}
+
+{% block content %}
+{% if perms.news.add_post %}
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="shadow-lg border-0 rounded-4 p-4 text-center" style="...">
+        <h1> 🚷 Вы не можете создавать более трёх постов в сутки!</h1>
+    </div>
+</div>
+{% else %}
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="shadow-lg border-0 rounded-4 p-4 text-center" style="...">
+        <h1> 🚷 Доступ ограничен!</h1>
+    </div>
+</div>
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="shadow-lg border-0 rounded-4 p-4 text-center" style="...">
+        <h4> Возможные причины появления данного сообщения: </h4>
+        <h4> Вы не авторизировались </h4>
+        <h4> Вы не состоите в группе Автор или Премиум </h4>
+    </div>
+</div>
+{% endif %}
+{% endblock content %}

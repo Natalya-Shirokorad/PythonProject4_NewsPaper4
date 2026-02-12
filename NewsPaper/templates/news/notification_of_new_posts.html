@@ -1,0 +1,12 @@
+{% extends 'flatpages/default.html' %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>В категории 'спорт' новая публикация</title>
+</head>
+<body>
+<h2>Название: {{ post.title|truncatechars:20 }}</h2>
+    <h2>{{  post.text|truncatechars:50 }} </h2>
+</body>
+

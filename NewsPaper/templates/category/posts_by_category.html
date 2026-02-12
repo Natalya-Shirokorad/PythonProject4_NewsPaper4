@@ -1,0 +1,65 @@
+{% extends 'flatpages/default.html' %}
+{% block content %}
+<h1>Посты в категории "{{ category_name }}"</h1>
+
+{% for post in posts %}
+<div class="post">
+    <h2><a href="{% url 'post_detail' post.id %}">{{ post.title }}</a></h2>
+    <p>Опубликовано {{ post.time_in|date:"d.m.Y H:i" }}</p>
+    <p>{{ post.author }}</p>
+    <p>{{ post.preview }}</p>
+</div>
+{% empty %}
+<p>Нет постов в этой категории.</p>
+{% endfor %}
+
+<div class="container mt-3 d-flex justify-content-center">
+    {% if user.is_authenticated %}
+        {% if not is_subscribers %}
+        <p>Вы не подписаны на категорию "Спорт"</p>
+        <a href="{% url 'be_subscribers' %}">Подписаться</a>
+    {% else %}
+        <p>Вы подписаны на категорию "Спорт"</p>
+<!--        <button> <a href="{% url 'be_subscribers' %}">Отписаться</a> </button>-->
+        {% endif %}
+    {% endif %}
+</div>
+<!--<div>-->
+<!--{% if is_subscribers %}-->
+<!--    <p>Вы подписаны на категорию "Спорт"</p>-->
+<!--{% else %}-->
+<!--    <p>Вы не подписаны на категорию "Спорт"</p>-->
+<!--{% endif %}-->
+
+<!--&lt;!&ndash; Если хотите показать все подписки пользователя &ndash;&gt;-->
+<!--<h3>Ваши подписки:</h3>-->
+<!--<ul>-->
+<!--{% for category in user_subscriptions %}-->
+<!--    <li>{{ category.category_name }}</li>-->
+<!--{% empty %}-->
+<!--    <li>У вас нет подписок</li>-->
+<!--{% endfor %}-->
+<!--</ul>-->
+<!--</div>-->
+
+<!-- Пагинация -->
+<div class="pagination">
+    {% if posts.has_previous %}
+        <a href="?page={{ posts.previous_page_number }}">Предыдущая</a>
+    {% endif %}
+
+    <!-- Текущие страницы -->
+    {% for num in posts.paginator.page_range %}
+        {% if posts.number == num %}
+            <span class="current-page">{{ num }}</span>
+        {% elif num >= posts.number|add:'-2' and num <= posts.number|add:'2' %}
+            <a href="?page={{ num }}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if posts.has_next %}
+        <a href="?page={{ posts.next_page_number }}">Следующая</a>
+    {% endif %}
+</div>
+
+{% endblock %}

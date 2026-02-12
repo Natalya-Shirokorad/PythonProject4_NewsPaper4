@@ -1,0 +1,50 @@
+{% extends 'flatpages/default.html' %}
+{% load static %}
+
+
+{% block title %}
+News_id
+{% endblock title %}
+
+{% block content %}
+<div style="background-color: lightgray; padding: 150px;"> <!-- Оборачиваем контент -->
+    <!--    <h3>{{ time_now|date:'M d Y' }}</h3>-->
+    <div class="container mt-5"></div>
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="mt-4 text-center">
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" class="img-fluid rounded" alt="thumbnail">
+<!--                        style="width:80px; height:80px; object-fil:cover;" alt="thumbnail">-->
+                    {% else %}
+                        <img src="{% static 'images/newspaper on the table.jfif' %}" class="img-fluid rounded" alt="placeholder">
+                    {% endif %}
+
+
+            <p>
+            <h1>{{ news_id.title }}</h1>
+            <hr>
+            <h2>{{ news_id.text }}</h2>
+            <p>
+            <h3>{{ news_id.time_in|date:'d M Y' }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div>
+        {% if news_id.author == user.author %}
+        <button> <a href="{% url 'news_delete' news_id.id %}"> Удалить </a> </button>
+        {% endif %}
+</div>
+<div>
+        {% if news_id.author == user.author %}
+            {% if news_id.article_or_news == 'NE' %}
+                <button> <a href="{% url 'news_update' news_id.id %}"> Редактировать новость </a> </button>
+            {% endif %}
+            {% if news_id.article_or_news == 'AR' %}
+                <button> <a href="{% url 'articles_update' news_id.id %}"> Редактировать статью </a> </button>
+            {% endif %}
+        {% endif %}
+</div>
+{% endblock content %}

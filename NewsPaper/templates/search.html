@@ -1,0 +1,90 @@
+{% extends 'flatpages/default.html' %}
+{% load custom_filters %}
+{% load custom_tags %}
+<!-- Название у нас будет posts -->
+{% block title %}
+News
+{% endblock title %}
+
+<!-- В контенте на странице мы выводим все товары -->
+{% block content %}
+    <h1>Все новости</h1>
+    <p> Всего новостей: {{ news|length }}</p> {# Выведет количество новостей #}
+<!--  {# Добавляем форму, которая объединяет набор полей, которые будут отправляться в запросе #}-->
+    <form action="" method="get">
+<!--       {# Переменная, которую мы передали через контекст, может сгенерировать нам форму с полями #}-->
+        {{ filterset.form.as_p }}
+<!--        <p><label for="start">Выбрать дату:</label>-->
+<!--        <input-->
+<!--            type="date"-->
+<!--            id="start"-->
+<!--            name="trip-start"-->
+<!--            value="2025-11-01"-->
+<!--            min="2025-10-01"-->
+<!--            max="2025-12-31" /></p>-->
+<!--       {# Добавим кнопку отправки данных формы #}-->
+        <p><input type="submit" value="Найти" class="btn btn-primary btn=sm"></p>
+    </form>
+        <hr>
+        <p> {% if news %}
+        <table> <!-- Начинаем описывать таблицу -->
+            <tr> <!-- Добавляем строку -->
+                <td>Заголовок</td>
+                <td>Дата публикации</td>
+                <td>Текст</td>
+                <td>Автор</td>
+                <td>Тип публикации</td>
+
+                <td colspan="2">Рейтинг</td>
+                <td>Категория</td>
+<!--                #Объеденяем два столбика рейтинг эмодзи и показатель# -->
+            </tr>
+                {% for post in news %}
+            <!-- Не забываем, что переменные в шаблоне ничем не отличаются
+                от переменных в Python. Здесь также можно получать доступ к
+                полям объекта модели. Например, здесь мы выводим имя,
+                в следующем столбце описание, и т.д.  -->
+            <tr> <!-- Не забываем закрыть HTML-тег строки -->
+                    <!-- Для каждой новости будете генерироваться новая строчка,
+           т.е. новый HTML код, который указан в теле цикла.
+           При этом сам цикл работает точно так же, как и в Python.
+           post — переменная цикла, т.е. наша новость/статья полученная из списка -->
+                <td>{{ post.title}}</td>
+                <td>{{ post.time_in|date:'d M Y' }}</td>
+                <td>{{ post.text|truncatechars:1000|find_a_bad_word}}</td>
+                <td>{{ post.author.user.username}}</td>
+                <td>{{ post.get_article_or_news_display}}</td>
+
+                <td>{{ post.rating}}</td>
+                <td>{{ post.rating|emoji}}</td>
+                <td>{% for category in post.categorys.all %}{{ category.category_name }} {% if not forloop.last %}, {% endif %}{% endfor %}</td>
+            </tr>
+                {% endfor %}
+        </table>
+    <hr>
+            {% else %}
+        <h2> Новостей нет! </h2>
+        {% endif %}
+
+<!--    {# Ссылка на первую страницу и кнопку "Назад" #}-->
+    {% if page_obj.has_previous %}
+        <a href="?{% url_replace page=1 %}">1</a>
+        <a href="?{% url_replace page=page_obj.previous_page_number %}">«</a>
+    {% endif %}
+
+<!--    {# Цикл по номерам страниц — ЗДЕСЬ ОБЫЧНО ОШИБКА #}-->
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+            <span>{{ num }}</span> {# Текущая страница (не ссылка) #}
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+<!--            {# Ссылка на конкретное число — ТУТ ОБЯЗАТЕЛЬНО url_replace #}-->
+            <a href="?{% url_replace page=num %}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+<!--    {# Кнопка "Вперед" и "Последняя" #}-->
+    {% if page_obj.has_next %}
+        <a href="?{% url_replace page=page_obj.next_page_number %}">»</a>
+        <a href="?{% url_replace page=page_obj.paginator.num_pages %}">{{ page_obj.paginator.num_pages }}</a>
+    {% endif %}
+{% endblock content %}

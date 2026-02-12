@@ -1,0 +1,68 @@
+{% extends 'flatpages/default.html' %}
+
+
+{% block content %}
+
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="shadow-lg border-0 rounded-4 p-4 text-center" style="...">
+        <h2 class="text-primary">Страница авторизованного пользователя </h2>
+        <h2 class="text-danger">{{ user.username }}</h2>
+        <div> Здесь содержится персональная информация для каждого пользователя </div>
+        {% if is_not_premium %}
+        <button> <a href="/sign/upgrade/"> Хочу Premium!</a> </button>
+        {% endif %}
+        {% if not is_author %}
+         <a href="{% url 'be_author' %}" class="btn btn-outline-success btn-sm"> Стать Автором </a>
+        {% endif %}
+
+    </div>
+</div>
+<div class="container mt-3 d-flex justify-content-center">
+    {% if is_author %}
+        <button> <a href="{% url 'news_create' %}"> Создать новость</a> </button>
+        <button> <a href="{% url 'articles_create' %}">Создать Статью</a> </button>
+    {% endif %}
+</div>
+<div class="container mt-5 d-flex justify-content-center">
+    <button> <a href="/sign/confirm/logout/" class="btn btn-outline-success mt-2">Выйти</a> </button>
+</div>
+{% if messages %}
+<div class="container mt-3 d-flex justify-content-center">
+    <div style="...">
+        {% for message in messages %}
+        {% if 'authors' in message.tags %}
+        <div class="=alert alert-success mb-2">
+            {{ message }}
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+<!--    <div style="...">-->
+<!--        {% for message in messages %}-->
+<!--        {% if 'subscribers' in message.tags %}-->
+<!--        <div class="=alert alert-success mb-2">-->
+<!--            {{ message }}-->
+<!--        </div>-->
+        {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
+</div>
+<div>
+{% if not is_subscribers %}
+    <p>Вы не состоите в группе "subscribers" </p>
+    <a href="{% url 'be_subscribers' %}">Подписаться</a>
+{% else %}
+    <p>Вы состоите в группе "subscribers" </p>
+    <button> <a href="{% url 'be_subscribers' %}">Отписаться</a> </button>
+{% endif %}
+</div>
+<div>
+{% if not is_author %}
+    <p>Вы не состоите в группе "Автор" </p>
+{% else %}
+    <p>Вы состоите в группе "Автор" </p>
+    <button> <a href="{% url 'be_author' %}">Отписаться</a> </button>
+{% endif %}
+</div>
+{% endblock content %}

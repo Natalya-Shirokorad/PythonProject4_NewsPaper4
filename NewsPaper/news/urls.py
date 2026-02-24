@@ -20,7 +20,7 @@ urlpatterns = [
    path('news/<int:pk>/delete/', NewsDelete.as_view(template_name= 'news/news_delete.html'), name='news_delete' ),
    path('articles/<int:pk>/delete/', ArticlesDelete.as_view(template_name= 'articles/articles_delete.html'), name='articles_delete'),
    path('delete/news/', delete_news, name='delete_news'),
-   path('category/<str:category_name>/', post_by_category, name='post_by_category'), # путь к публикациям по названию категории спорт
+   path('category/<str:category_name>/', post_by_category, name='post_by_category'), # путь к публикациям по названию категории спорт и др.
    path('categories/', CategoryList.as_view(), name='categories_list'), # путь к списку всех категорий
    path('category/<int:pk>/subscribe/', subscribe, name='subscribe'),
    path('category/<int:pk>/unsubscribe/', unsubscribe, name='unsubscribe'),

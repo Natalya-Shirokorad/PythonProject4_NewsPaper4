@@ -2,7 +2,14 @@
 
 
 {% block content %}
-
+<div class="alert alert-secondary">
+    <h5>Отладка:</h5>
+    <p>Пользователь: {{ user.username }} (ID: {{ user.id }})</p>
+    <p>Категории: {{ subscribed_categories|length }}</p>
+    <p>Группы: {{ user_groups|length }}</p>
+    <p>is_author: {{ is_author }}</p>
+    <p>is_subscribers: {{ is_subscribers }}</p>
+</div>
 <div class="container mt-5 d-flex justify-content-center">
     <div class="shadow-lg border-0 rounded-4 p-4 text-center" style="...">
         <h2 class="text-primary">Страница авторизованного пользователя </h2>
@@ -14,7 +21,6 @@
         {% if not is_author %}
          <a href="{% url 'be_author' %}" class="btn btn-outline-success btn-sm"> Стать Автором </a>
         {% endif %}
-
     </div>
 </div>
 <div class="container mt-3 d-flex justify-content-center">
@@ -64,5 +70,32 @@
     <p>Вы состоите в группе "Автор" </p>
     <button> <a href="{% url 'be_author' %}">Отписаться</a> </button>
 {% endif %}
+</div>
+<div class="container mt-4">
+    <div class="alert alert-info">
+    <h4>Категории на которые вы подписаны:</h4>
+    {% if subscribed_categories %}
+            {% for category in subscribed_categories %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ category.category_name }}</h5>
+                </div>
+                <p class="mb-1">
+                    Подписчиков: {{ category.subscribers.count }}
+                    </p>
+                    <p class="mb-1">
+                        Публикаций в категории: {{ category.categories_post.count }}
+                    </p>
+            </div>
+            {% endfor %}
+    {% else %}
+        <div class="alert alert-info">
+            <p>Вы не подписаны ни на одну категорию.</p>
+        </div>
+    {% endif %}
+    <div class="alert alert-info">
+        <p>Перейдите в <a href="{% url 'categories_list' %}">список категорий</a>,
+            чтобы подписаться на интересующие категории.</p>
+    </div>
 </div>
 {% endblock content %}

@@ -16,7 +16,7 @@ from django.contrib.auth.models import Group
 from sign.utils import get_group
 from sign.views import *
 from django.core.mail import BadHeaderError
-
+from .tasks import create_new_post
 
 class PostList(ListView):
     model = Post
@@ -75,13 +75,22 @@ class NewsCreate(PermissionRequiredMixin, CreateView):
     template_name = 'news/create.html'
     permission_required = 'news.add_post' # наделение прав создавать посты
 
+
     def form_valid(self, form):
         post = form.save(commit=False)
         if 'news' in self.request.path:
             post.article_or_news = 'NE'
         post.author = self.request.user.author  # Создаем автора
-        # post.save()
+        post.save()
+        form.save_m2m()
+        create_new_post.delay(post.id)
         return super().form_valid(form)
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context['subscribed_categories'] = Category.objects.filter(subscribers=self.request.user)
+    #     return context
+
 
 class ArticlesCreate(PermissionRequiredMixin, CreateView):
     model = Post
@@ -89,7 +98,6 @@ class ArticlesCreate(PermissionRequiredMixin, CreateView):
     # success_url = reverse_lazy('post_list') # Либо функцию в модель Пост def get_absolute_url(self) для возвращения на страницу новостей
     template_name = 'articles/create.html'
     permission_required = 'news.add_post'
-
 
 
 class NewsUpdate(PermissionRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -140,13 +148,14 @@ class CategoryList(LoginRequiredMixin, ListView):
     template_name = 'category/list_categories.html'
     context_object_name = 'categories'
 
+# Подписаться на категорию
 @login_required
 def subscribe(request, pk):
     category = Category.objects.get(pk=pk)
     category.subscribers.add(request.user)
     return redirect(request.META.get('HTTP_REFERER'))
 
-
+# Отписаться от категории
 @login_required
 def unsubscribe(request, pk):
     category = Category.objects.get(pk=pk)

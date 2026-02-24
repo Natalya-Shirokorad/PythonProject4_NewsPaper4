@@ -51,8 +51,10 @@ def upgrade_me(request):
 def my_profile(request):
     # user = request.user   #функция для перенаправления на страничку зарег. пользователя.
     context= {'is_author':request.user.groups.filter(name='authors').exists(),
-              'is_subscribers':request.user.groups.filter(name='subscribers').exists()} # для выявления подписки в группу.
+              'is_subscribers':request.user.groups.filter(name='subscribers').exists(), # для выявления подписки в группу.
                # 'if_the_author_changes':request.user.groups.filter(name='authors').exists(),}# context для проверки находится ли пользователь в группе автор.
+                'user_groups': request.user.groups.all(),
+                'subscribed_categories': Category.objects.filter(subscribers=request.user).prefetch_related('categories_post')}
     return render(request, 'protect/index.html', context)
 
 # функция для прооверки относится ли зарег. пользователь к группе автор. Если такой группы нет, то создается.

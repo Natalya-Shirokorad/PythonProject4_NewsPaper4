@@ -44,31 +44,32 @@ def subscribers_notifikation(sender, instance, action, pk_set, **kwargs):
         )
 
 
-# сигнал на уведомление на почту о новых публикациях в определенной категории
-@receiver(m2m_changed, sender=Post.categorys.through)
-def post_add_category(sender, instance, action, pk_set, **kwargs):
-    if action!= 'post_add' or not pk_set:
-        return
-    try:
-        # Получаем добавленные категории
-        categories = Category.objects.filter(pk__in=pk_set)
-        for category in categories:
-            subscribers= category.subscribers.all()
-            if not subscribers.exists():
-                continue
-            post_url = settings.SITE_URL + reverse('post_detail', args=[instance.id])
-            send_mail(
-                subject=f'Новая публикация в категории "{category.category_name}"',
-                message=f'Вышла новая статья под названием "{instance.title}"\n Краткое содержание: {instance.text[:200]}...\n\n'
-                        f'Читать польностью: {post_url} .\n\n'
-                        f'\n Это письмо отправлено автоматически. Не отвечайте на него.',
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[subscriber.email for subscriber in subscribers if subscriber.email],
-            )
+# # сигнал на уведомление на почту о новых публикациях в определенной категории
+# @receiver(m2m_changed, sender=Post.categorys.through)
+# def post_add_category(sender, instance, action, pk_set, **kwargs):
+#     if action!= 'post_add' or not pk_set:
+#         return
+#     try:
+#         # Получаем добавленные категории
+#         categories = Category.objects.filter(pk__in=pk_set)
+#         for category in categories:
+#             subscribers= category.subscribers.all()
+#             if not subscribers.exists():
+#                 continue
+#             post_url = settings.SITE_URL + reverse('post_detail', args=[instance.id])
+#             send_mail(
+#                 subject=f'Новая публикация в категории "{category.category_name}"',
+#                 message=f'Вышла новая статья под названием "{instance.title}"\n Краткое содержание: {instance.text[:200]}...\n\n'
+#                         f'Читать польностью: {post_url} .\n\n'
+#                         f'\n Это письмо отправлено автоматически. Не отвечайте на него.',
+#                 from_email=settings.DEFAULT_FROM_EMAIL,
+#                 recipient_list=[subscriber.email for subscriber in subscribers if subscriber.email],
+#             )
+#
+#
+#     except Exception as e:
+#         print(f"Ошибка отправки уведомлений о новой публикации: {e}")
 
-
-    except Exception as e:
-        print(f"Ошибка отправки уведомлений о новой публикации: {e}")
 
 #
 # Сигнал удаления публикаций

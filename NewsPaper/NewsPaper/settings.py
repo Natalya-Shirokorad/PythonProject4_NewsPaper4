@@ -220,13 +220,13 @@ SITE_URL = "http://127.0.0.1:8000"
 
 # Настройки рассылки админам
 ADMINS = [
-    ('Наталья', 'n.shirokorad@mail.ru'),
+    ('Наталья', 'n.sh.ru'),
     # список всех админов в формате ('имя', 'их почта')
 ]
 
 MANAGERS = [
-    ('Н. Ш.', 'n.shiroko@mail.ru'),
-    ('Н. Ш1.', 'n.shir@outlook.com'),
+    ('Н. Ш.', 'il.ru'),
+    ('Н. Ш1.', 'ok.com'),
 ]
 
 SERVER_EMAIL = DEFAULT_FROM_EMAIL  # это будет у нас вместо аргумента FROM в массовой рассылке

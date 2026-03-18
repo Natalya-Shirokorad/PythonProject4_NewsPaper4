@@ -1,7 +1,8 @@
 {% extends 'flatpages/default.html' %}
-
+{% load cache %}
 
 {% block content %}
+    {% cache 120 Отладка %} <!-- Кэшируем отдельный блок на 120 секунд -->
 <div class="alert alert-secondary">
     <h5>Отладка:</h5>
     <p>Пользователь: {{ user.username }} (ID: {{ user.id }})</p>
@@ -10,6 +11,7 @@
     <p>is_author: {{ is_author }}</p>
     <p>is_subscribers: {{ is_subscribers }}</p>
 </div>
+    {% endcache %}
 <div class="container mt-5 d-flex justify-content-center">
     <div class="shadow-lg border-0 rounded-4 p-4 text-center" style="...">
         <h2 class="text-primary">Страница авторизованного пользователя </h2>

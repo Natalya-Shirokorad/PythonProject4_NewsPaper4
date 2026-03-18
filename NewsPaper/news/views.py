@@ -18,6 +18,8 @@ from sign.views import *
 from django.core.mail import BadHeaderError
 from .tasks import create_new_post
 
+from django.core.cache import cache # импортируем наш кэш
+
 class PostList(ListView):
     model = Post
     post_type = None
@@ -67,6 +69,55 @@ class PostDetail(DetailView):
     # Название объекта, в котором будет выбранный пользователем пост(статья или новость)
     context_object_name = 'news_id'
 
+    # # Используем тот же ключ, что и в модели
+    CACHE_KEY_PREFIX = 'post'  # вместо 'news_id'
+
+    def get_object(self, *args, **kwargs):
+        cache_key = f"{self.CACHE_KEY_PREFIX}-{self.kwargs['pk']}"
+        # cache_key = f'news_id-{self.kwargs["pk"]}'  # не сработает так как context_object_name разный с моделью
+
+
+        # Проверяем наличие ключа в кэше
+        if cache_key in cache:
+            print(f"Ключ {cache_key} ЕСТЬ в кэше")
+            ttl = cache.ttl(cache_key)  # Остаточное время жизни
+            print(f"Осталось жить: {ttl} секунд")
+        else:
+            print(f"Ключа {cache_key} НЕТ в кэше")
+
+        obj = cache.get(cache_key)
+
+        # Если объекта нет в кэше, получаем его и сохраняем в кэш
+        if not obj:
+            obj = super().get_object(queryset=self.queryset)
+            cache.set(cache_key, obj)
+
+        return obj
+
+
+# # Детали поста кэшируются до тех пор, пока они не изменятся.
+#     def get_object(self, *args, **kwargs): # переопределяем метод получения объекта, как ни странно
+#         cache_key = f'{self.CACHE_KEY_PREFIX}-{self.kwargs["pk"]}'
+#         # cache_key = f'news_id-{self.kwargs["pk"]}'  # не сработает так как context_object_name разный с моделью
+#
+#         # Проверяем, есть ли в кэше
+#         if cache.has_key(cache_key):
+#             print(f"Ключ {cache_key} ЕСТЬ в кэше")
+#             ttl = cache.ttl(cache_key)  # Оставшееся время жизни
+#             print(f"Осталось жить: {ttl} секунд")
+#         else:
+#             print(f"Ключа {cache_key} НЕТ в кэше")
+#
+#         obj = cache.get(cache_key)
+#         # obj = cache.get(f'news_id-{self.kwargs["pk"]}', None) # кэш очень похож на словарь, и метод get действует так же. Он забирает значение по ключу, если его нет, то забирает None.
+#
+#       #если объекта нет в кэше, то получаем его и записываем в кэш
+#         if not obj:
+#             obj = super().get_object(queryset=self.queryset)
+#             cache.set(f'post-{self.kwargs["pk"]}', obj)
+#
+#         return obj
+
 
 class NewsCreate(PermissionRequiredMixin, CreateView):
     model = Post
@@ -108,7 +159,6 @@ class NewsUpdate(PermissionRequiredMixin, UserPassesTestMixin, UpdateView):
 
     def test_func(self):
         return self.get_object().author == self.request.user.author
-
 
 
 class ArticlesUpdate(PermissionRequiredMixin, UserPassesTestMixin, UpdateView):

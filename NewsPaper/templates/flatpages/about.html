@@ -1,4 +1,5 @@
 {% extends 'flatpages/default.html'%}
+{% load cache %}
 
 {% block title %}
 <head>
@@ -7,16 +8,18 @@
 {% endblock title %}
 
 {% block content %}
-
+    {% cache 600 about %}
 
 <body>
 <h1> ДОБРО ПОЖАЛОВАТЬ НА НОВОСТНОЙ ПОРТАЛ! </h1>
 <h1> Пишите, читайте с удовольствием! </h1>
 <h2> Чтобы выложить публикацию жми кнопку ВХОД или РЕГИСТРАЦИЯ </h2>
 {{ flatpage.content}}
+
 </body>
 <div>
     <h1><a href="{% url 'login' %}">Регистрация/Вход</a></h1>
 </div>
+    {% endcache %}
 {% endblock content %}
 

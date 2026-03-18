@@ -15,6 +15,9 @@ from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 load_dotenv()
+import sys
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -70,6 +73,11 @@ MIDDLEWARE = [
 
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
     "allauth.account.middleware.AccountMiddleware",
+
+    #     # Для кэширования всего сайта целиком
+    # 'django.middleware.cache.UpdateCacheMiddleware',
+    # 'django.middleware.common.CommonMiddleware',
+    # 'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'NewsPaper.urls'
@@ -212,7 +220,7 @@ SITE_URL = "http://127.0.0.1:8000"
 
 # Настройки рассылки админам
 ADMINS = [
-    ('Наталья', ''),
+    ('Наталья', 'n.shirokorad@mail.ru'),
     # список всех админов в формате ('имя', 'их почта')
 ]
 
@@ -236,3 +244,297 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 #------------------------------------------
+#
+# #  Кеширование
+# CACHES = {
+#     'default': {
+#         # 'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+#         # 'LOCATION': os.path.join(BASE_DIR, 'cache_files'), # Указываем, куда будем сохранять кэшируемые файлы! Не забываем создать папку cache_files внутри папки с manage.py!
+#         # # # Для кэширования всего сайта целиком
+#         # # 'TIMEOUT': 60, # добавляем стандартное время ожидания в минуту (по умолчанию это 5 минут — 300 секунд)
+#     # Для кэширования в редис нужно установить pip install django-redis и добавить настройки:
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION': 'redis://localhost:6379/2',
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#         }
+#     }
+# }
+#_________________________________________________________
+
+
+# Kод настройки логирования___________________________
+
+# Создаем директорию для логов
+LOG_DIR = BASE_DIR / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
+
+# Настройки почты для отправки ошибок заданы выше.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        # ========== ФОРМАТТЕРЫ ДЛЯ КОНСОЛИ ==========
+
+        # Для DEBUG и INFO: время, уровень, сообщение
+        'console_debug_info': {
+            'format': '{asctime} [{levelname}] {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+
+        # Для WARNING и выше: + путь к источнику
+        'console_warning': {
+            'format': '{asctime} [{levelname}] {pathname}:{lineno} {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+
+        # Для ERROR и CRITICAL: + стек ошибки
+        'console_error': {
+            'format': '{asctime} [{levelname}] {pathname}:{lineno}\n{message}\n{exc_info}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+
+        # ========== ФОРМАТТЕРЫ ДЛЯ ФАЙЛОВ ==========
+
+        # Для general.log: время, уровень, модуль, сообщение
+        'file_general': {
+            'format': '{asctime} [{levelname}] {module} {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+
+        # Для errors.log: время, уровень, сообщение, путь, стек ошибки
+        'file_errors': {
+            'format': '{asctime} [{levelname}] {pathname}:{lineno}\n{message}\n{exc_info}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+
+        # Для security.log: время, уровень, модуль, сообщение
+        'file_security': {
+            'format': '{asctime} [{levelname}] {module} {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+
+        # Для почты: время, уровень, сообщение, путь (без стека)
+        'mail_admins': {
+            'format': '{asctime} [{levelname}] {pathname}:{lineno}\n{message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
+
+    'filters': {
+        # Фильтр: только при DEBUG=True
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+
+        # Фильтр: только при DEBUG=False
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+
+        # Фильтр: только ERROR и CRITICAL
+        'error_critical_only': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': lambda record: record.levelno >= 40,  # ERROR=40, CRITICAL=50
+        },
+
+        # Фильтр: только для определенных логгеров (errors.log)
+        'errors_from_specific_loggers': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': lambda record: (
+                record.levelno >= 40 and  # ERROR или CRITICAL
+                record.name in [  # И из определенных логгеров
+                    'django.request',
+                    'django.server',
+                    'django.template',
+                    'django.db.backends'
+                ]
+            ),
+        },
+
+        # Фильтр: только django.security (security.log)
+        'security_only': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': lambda record: record.name == 'django.security',
+        },
+
+        # Фильтр: ERROR и выше из django.request и django.server (для почты)
+        'mail_admins_filter': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': lambda record: (
+                record.levelno >= 40 and  # ERROR или CRITICAL
+                record.name in ['django.request', 'django.server']  # Только эти логгеры
+            ),
+        },
+    },
+
+    'handlers': {
+        # ========== КОНСОЛЬНЫЕ ОБРАБОТЧИКИ ==========
+
+        # DEBUG и INFO сообщения в консоль
+        'console_debug_info': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+            'formatter': 'console_debug_info',
+            'filters': ['require_debug_true'],  # Только при DEBUG=True
+        },
+
+        # WARNING сообщения в консоль (с путем)
+        'console_warning': {
+            'level': 'WARNING',
+            'class': 'logging.StreamHandler',
+            'stream': sys.stderr,
+            'formatter': 'console_warning',
+            'filters': ['require_debug_true'],  # Только при DEBUG=True
+        },
+
+        # ERROR и CRITICAL сообщения в консоль (со стеком)
+        'console_error': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+            'stream': sys.stderr,
+            'formatter': 'console_error',
+            'filters': ['require_debug_true'],  # Только при DEBUG=True
+        },
+
+        # ========== ФАЙЛОВЫЕ ОБРАБОТЧИКИ ==========
+
+        # general.log - INFO и выше
+        'file_general': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'general.log',
+            'maxBytes': 10485760,  # 10 MB
+            'backupCount': 10,
+            'formatter': 'file_general',
+            'filters': ['require_debug_false'],  # Только при DEBUG=False
+            'encoding': 'utf-8',
+        },
+
+        # errors.log - ERROR и CRITICAL из определенных логгеров
+        'file_errors': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'errors.log',
+            'maxBytes': 10485760,  # 10 MB
+            'backupCount': 10,
+            'formatter': 'file_errors',
+            'filters': ['errors_from_specific_loggers'],  # Фильтр по логгерам
+            'encoding': 'utf-8',
+        },
+
+        # security.log - только django.security
+        'file_security': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'security.log',
+            'maxBytes': 10485760,  # 10 MB
+            'backupCount': 20,  # Храним дольше
+            'formatter': 'file_security',
+            'filters': ['security_only'],  # Только django.security
+            'encoding': 'utf-8',
+        },
+
+        # ========== ПОЧТОВЫЙ ОБРАБОТЧИК ==========
+
+        # Отправка на почту
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'mail_admins',  # Без стека ошибок
+            'filters': ['require_debug_false', 'mail_admins_filter'],  # DEBUG=False + фильтр логгеров
+            'include_html': False,
+        },
+    },
+
+    'loggers': {
+        # ========== ОСНОВНЫЕ ЛОГГЕРЫ DJANGO ==========
+
+        # django.request - логи запросов
+        'django.request': {
+            'handlers': [
+                'console_debug_info', 'console_warning', 'console_error',  # Консоль (DEBUG=True)
+                'file_errors',  # errors.log
+                'mail_admins',  # Почта (DEBUG=False)
+            ],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+
+        # django.server - логи сервера разработки
+        'django.server': {
+            'handlers': [
+                'console_debug_info', 'console_warning', 'console_error',  # Консоль (DEBUG=True)
+                'file_errors',  # errors.log
+                'mail_admins',  # Почта (DEBUG=False)
+            ],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
+        # django.template - логи шаблонов
+        'django.template': {
+            'handlers': [
+                'console_debug_info', 'console_warning', 'console_error',  # Консоль (DEBUG=True)
+                'file_errors',  # errors.log
+            ],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
+        # django.db.backends - логи базы данных
+        'django.db.backends': {
+            'handlers': [
+                'console_debug_info',  # Консоль SQL (DEBUG=True)
+                'file_errors',  # errors.log (только ошибки)
+            ],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+
+        # django.security - логи безопасности
+        'django.security': {
+            'handlers': [
+                'console_warning', 'console_error',  # Консоль (DEBUG=True)
+                'file_security',  # security.log
+            ],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+
+        # ========== ОСНОВНОЙ ЛОГГЕР DJANGO ==========
+
+        # Основной логгер Django (все остальное)
+        'django': {
+            'handlers': [
+                'console_debug_info', 'console_warning', 'console_error',  # Консоль (DEBUG=True)
+                'file_general',  # general.log (DEBUG=False)
+            ],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
+        # ========== КОРНЕВОЙ ЛОГГЕР ==========
+
+        # Корневой логгер для всех приложений
+        '': {
+            'handlers': [
+                'console_debug_info', 'console_warning', 'console_error',  # Консоль (DEBUG=True)
+                'file_general',  # general.log (DEBUG=False)
+            ],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
+#___________________________________________________________________________________________________

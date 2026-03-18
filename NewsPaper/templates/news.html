@@ -43,8 +43,9 @@ News
 <!--                #Объеденяем два столбика рейтинг эмодзи и показатель# -->
             </tr>
             </thead>
+            <td>{{ forloop.counter }}</td>
                 {% for post in news %}
-            <tr>
+            <tr class="{% cycle 'light-row' 'dark-row' %}">
                 <td>{{ forloop.counter }}</td>
                 <td>
                     {% if post.image %}
@@ -54,6 +55,7 @@ News
                     <img src="{% static 'images/newspaper on the table.jfif' %}" class="img-thumbnail">
                     {% endif %}
                 </td>
+
                 <td><a href="{% url 'post_detail' post.id  %}">{{post.title }}</a></td>
                 <td>{{ post.title}}</td>
                 <td>{{ post.text|truncatechars:2000|find_a_bad_word}}</td>
@@ -71,6 +73,10 @@ News
             {% else %}
         <h2> Новостей нет! </h2>
         {% endif %}
+        <style type="text/css">
+        .light-row {background-color: white;}
+        .dark-row {background-color: lightblue;}
+        </style>
 
     {% if page_obj.has_previous %}
         <a href="?{% url_replace page=1 %}">1</a>

@@ -1,4 +1,4 @@
-
+from django.core.cache import cache
 from django.db import models
 from datetime import datetime
 from django.utils import timezone
@@ -97,6 +97,13 @@ class Post(models.Model): # Модель Пост. Эта модель долж�
 
     def get_absolute_url(self):
         return reverse('post_detail', args=[str(self.id)])
+
+
+# функция для сброса кэша при внесении изменения в публикацию.
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)  # сначала вызываем метод родителя, чтобы объект сохранился
+        cache.delete(f'post-{self.pk}')  # затем удаляем его из кэша, чтобы сбросить его
+
 
 # --- Модель PostCategory ---
 class PostCategory(models.Model):
